@@ -45,7 +45,7 @@ struct Instruction {
     OpcodeMap opcodes;
     ExecuteFn execute;
 
-    bool IsAddressingModeSupported(Assembler_AddressingMode mode) {
+    bool IsAddressingModeSupported(Assembler_AddressingMode mode) const {
         return opcodes.count(mode);
     }
 
@@ -294,22 +294,22 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
                 "BITA",
                 "Bit(s) Test A with Memory",
                 {
-                        { Assembler_AddressingMode::IMMEDIATE, { {0x85}, 1 } },
-                        { Assembler_AddressingMode::DIRECT, { {0x95}, 1 } },
-                        { Assembler_AddressingMode::EXTENDED, { {0xB5}, 2 } },
-                        { Assembler_AddressingMode::INDEXED_X, { {0xA5}, 1 } },
-                        { Assembler_AddressingMode::INDEXED_Y, { {0x18, 0xA5}, 1 } },
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x85}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x95}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB5}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA5}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA5}, 1 } },
                 }
         ),
         Instruction::Create(
                 "BITB",
                 "Bit(s) Test B with Memory",
                 {
-                        { Assembler_AddressingMode::IMMEDIATE, { {0xC5}, 1 } },
-                        { Assembler_AddressingMode::DIRECT, { {0xD5}, 1 } },
-                        { Assembler_AddressingMode::EXTENDED, { {0xF5}, 2 } },
-                        { Assembler_AddressingMode::INDEXED_X, { {0xE5}, 1 } },
-                        { Assembler_AddressingMode::INDEXED_Y, { {0x18, 0xE5}, 1 } },
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC5}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD5}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF5}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE5}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE5}, 1 } },
                 }
         ),
         Instruction::Create(
@@ -372,9 +372,9 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
                 "BRCLR",
                 "Branch if Bit(s) Clear",
                 {
-                        { Assembler_AddressingMode::DIRECT,     { {0x13}, 1 } },
-                        { Assembler_AddressingMode::INDEXED_X,  { {0x1F}, 1 } },
-                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x1F}, 1 } }
+                        { Assembler_AddressingMode::DIRECT,     { {0x13}, 3 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1F}, 3 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x1F}, 3 } }
                 }
         ),
         Instruction::Create(
@@ -385,10 +385,886 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
                 }
         ),
         Instruction::Create(
-                "BRN",
-                "Branch Never", // NOTE(alex): Isn't this the exact same as NOP?
+                "BRSET",
+                "Branch if Bit(s) Set",
                 {
-                        { Assembler_AddressingMode::RELATIVE, { {0x21}, 1 } }
+                        { Assembler_AddressingMode::DIRECT,     { {0x12}, 3 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1E}, 3 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x1E}, 3 } }
+                }
+        ),
+        Instruction::Create(
+                "BSET",
+                "Set Bit(s)",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0x14}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1C}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x1C}, 2 } }
+                }
+        ),
+        Instruction::Create(
+                "BSR",
+                "Branch to Subroutine",
+                {
+                        { Assembler_AddressingMode::RELATIVE, { {0x8D}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "BVC",
+                "Branch if Overflow Clear",
+                {
+                        { Assembler_AddressingMode::RELATIVE, { {0x28}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "BVS",
+                "Branch if Overflow Set",
+                {
+                        { Assembler_AddressingMode::RELATIVE, { {0x29}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "CBA",
+                "Compare A to B",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x11}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CLC",
+                "Clear Carry Bit",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x0C}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CLI",
+                "Clear Interrupt Mask",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x0E}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CLR",
+                "Clear Memory Byte",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x7F}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x6F}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x6F}, 2 } }
+                }
+        ),
+        Instruction::Create(
+                "CLRA",
+                "Clear Accumulator A",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x4F}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CLRB",
+                "Clear Accumulator B",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x5F}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CLV",
+                "Clear Accumulator B",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x0A}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CMPA",
+                "Compare A to Memory",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x81}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x91}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB1}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA1}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA1}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "CMPB",
+                "Compare B to Memory",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC1}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD1}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF1}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE1}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE1}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "COM",
+                "1's Complement Memory Byte",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x73}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x63}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x63}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "COMA",
+                "1's Complement A",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x43}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "COMB",
+                "1's Complement B",
+                {
+                        { Assembler_AddressingMode::INHERENT, { {0x53}, 0 } }
+                }
+        ),
+        Instruction::Create(
+                "CPD",
+                "Compare D to Memory 16-Bit",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x1A, 0x83}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x1A, 0x93}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0x1A, 0xB3}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1A, 0xA3}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0xCD, 0xA3}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "CPX",
+                "Compare X to Memory 16-Bit",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x8C}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x9C}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xBC}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xAC}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0xCD, 0xAC}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "CPY",
+                "Compare Y to Memory 16-Bit",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x18, 0x8C}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x18, 0x9C}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0x18, 0xBC}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1A, 0xAC}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAC}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "DAA",
+                "Decimal Adjust A",
+                {
+                        { Assembler_AddressingMode::INHERENT,  { {0x19}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "DEC",
+                "Decrement Memory Byte",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x7A}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x6A}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x6A}, 2 } },
+                }
+        ),
+        Instruction::Create(
+                "DECA",
+                "Decrement Accumulator A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x4A}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "DECB",
+                "Decrement Accumulator B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x5A}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "DES",
+                "Decrement Stack Pointer",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x34}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "DEX",
+                "Decrement Index Register X",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x09}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "DEY",
+                "Decrement Index Register Y",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x09}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "EORA",
+                "Exclusive OR A with Memory",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x88}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x98}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB8}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA8}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA8}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "EORB",
+                "Exclusive OR B with Memory",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC8}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD8}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF8}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE8}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE8}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "FDIV",
+                "Fractional Divide 16 by 16 (Unsigned)",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x03}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "IDIV",
+                "Integer Divide by 16 by 16 (Unsigned)",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x02}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "INC",
+                "Increase Memory Byte",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x7C}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x6C}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x6C}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "INCA",
+                "Increment Accumulator A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x4C}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "INCB",
+                "Increment Accumulator B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x5C}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "INS",
+                "Increment Stack Pointer",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x31}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "INX",
+                "Increment Index Register X",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x08}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "INY",
+                "Increment Index Register Y",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x08}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "JMP",
+                "Jump",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x7E}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x6E}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x6E}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "JSR",
+                "Jump to Subroutine",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0x9D}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0x8D}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xAD}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAD}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDAA",
+                "Load Accumulator A",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x86}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x96}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB6}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA6}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA6}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDAB",
+                "Load Accumulator B",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC6}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD6}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF6}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE6}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE6}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDD",
+                "Load Accumulator D",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xCC}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xDC}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xFC}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xEC}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xEC}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDS",
+                "Load Stack Pointer",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x8E}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x9E}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xBE}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xAE}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAE}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDX",
+                "Load Index Register X",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xCE}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xDE}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xFE}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xEE}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xEE}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LDY",
+                "Load Index Register Y",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x18, 0xCE}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x18, 0xDE}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0x18, 0xFE}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1A, 0xEE}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xEE}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LSL",
+                "Logical Shift Left",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x78}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x68}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x68}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LSLA",
+                "Logical Shift Left A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x48}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "LSLB",
+                "Logical Shift Left B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x58}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "LSLD",
+                "Logical Shift Left Double",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x05}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "LSR",
+                "Logical Shift Right",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x74}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x64}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x64}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "LSRA",
+                "Logical Shift Right A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x44}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "LSRB",
+                "Logical Shift Right B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x54}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "LSRD",
+                "Logical Shift Right Double",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x04}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "MUL",
+                "Multiply 8 by 8",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x3D}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "NEG",
+                "2's Complement Memory Byte",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x70}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x60}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x60}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "NEGA",
+                "2's Complement A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x40}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "NEGB",
+                "2's Complement B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x50}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "NOP",
+                "No Operation",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x01}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "ORAA",
+                "OR Accumulator A (Inclusive)",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x8A}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x9A}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xBA}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xAA}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAA}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "ORAB",
+                "OR Accumulator B (Inclusive)",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xCA}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xDA}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xFA}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xEA}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xEA}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "PSHA",
+                "Push A onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x36}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PSHB",
+                "Push B onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x37}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PSHX",
+                "Push X onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x3C}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PSHY",
+                "Push Y onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x3C}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PULA",
+                "Pull A onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x32}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PULB",
+                "Pull B onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x33}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PULX",
+                "Pull X onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x38}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "PULY",
+                "Pull Y onto Stack",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x38}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "ROL",
+                "Rotate Left",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x79}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x69}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x69}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "ROLA",
+                "Rotate Left A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x49}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "ROLB",
+                "Rotate Left B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x59}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "ROR",
+                "Rotate Right",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x76}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x66}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x66}, 1 } }
+                }
+        ),
+        Instruction::Create(
+                "RORA",
+                "Rotate Right A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x46}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "RORB",
+                "Rotate Right B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x56}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "RTI",
+                "Return from Interrupt",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x3B}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "RTS",
+                "Return from Subroutine",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x39}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "SBA",
+                "Subtract B from A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x10}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "SBCA",
+                "Subtract with Carry from A",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x82}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x92}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB2}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA2}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA2}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SBCB",
+                "Subtract with Carry from B",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC2}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD2}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF2}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE2}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE2}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SEC",
+                "Set Carry",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x0D}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "SEI",
+                "Set Interrupt Mask",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x0F}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "SEV",
+                "Set Overflow Flag",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x0B}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "STAA",
+                "Store Accumulator A",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0x97}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB7}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA7}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA7}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "STAB",
+                "Store Accumulator B",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0xD7}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF7}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE7}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE7}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "STD",
+                "Store Accumulator D",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0xDD}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xFD}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xED}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xED}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "STOP",
+                "Stop Internal Clocks",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0xCF}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "STS",
+                "Store Stack Pointer",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0x9F}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xBF}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xAF}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAF}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "STX",
+                "Store Index Register X",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0xDF}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xFF}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xEF}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xEF}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "STY",
+                "Store Index Register Y",
+                {
+                        { Assembler_AddressingMode::DIRECT,     { {0x18, 0x9F}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0x18, 0xBF}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x1A, 0xAF}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xAF}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SUBA",
+                "Subtract Memory from A",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x80}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x90}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB0}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA0}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA0}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SUBB",
+                "Subtract Memory from B",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0xC0}, 1 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0xD0}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xF0}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xE0}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xE0}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SUBD",
+                "Subtract Memory from D",
+                {
+                        { Assembler_AddressingMode::IMMEDIATE,  { {0x83}, 2 } },
+                        { Assembler_AddressingMode::DIRECT,     { {0x93}, 1 } },
+                        { Assembler_AddressingMode::EXTENDED,   { {0xB3}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0xA3}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0xA3}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "SWI",
+                "Software Interrupt",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x3F}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TAB",
+                "Transfer A to B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x16}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TAP",
+                "Transfer A to CC Register",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x06}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TBA",
+                "Transfer B to A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x17}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TEST",
+                "TEST (Only in Test Modes)",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x00}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TPA",
+                "Transfer CC Register to A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x07}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TST",
+                "Test Memory",
+                {
+                        { Assembler_AddressingMode::EXTENDED,   { {0x7D}, 2 } },
+                        { Assembler_AddressingMode::INDEXED_X,  { {0x6D}, 1 } },
+                        { Assembler_AddressingMode::INDEXED_Y,  { {0x18, 0x6D}, 1 } },
+                }
+        ),
+        Instruction::Create(
+                "TSTA",
+                "Test Accumulator A",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x4D}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TSTB",
+                "Test Accumulator B",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x5D}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TSX",
+                "Transfer Stack Pointer to X",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x30}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TSY",
+                "Transfer Stack Pointer to Y",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x30}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TXS",
+                "Transfer X to Stack Pointer",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x35}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "TYS",
+                "Transfer Y to Stack Pointer",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x35}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "WAI",
+                "Wait for Interrupt",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x3E}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "XGDX",
+                "Exchange D with X",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x8F}, 0 } },
+                }
+        ),
+        Instruction::Create(
+                "XGDY",
+                "Exchange D with Y",
+                {
+                        { Assembler_AddressingMode::INHERENT,   { {0x18, 0x8F}, 0 } },
                 }
         ),
 };
@@ -457,6 +1333,9 @@ public:
         std::stringstream ss(str);
         std::string token;
         while (ss >> token) {
+            if (token.empty())
+                continue;
+
             tokens.emplace_back(token);
         }
 
@@ -469,6 +1348,10 @@ public:
 
         std::string instruction = tokens[0];
         col.instruction = GetInstructionByMnemonic(tokens[0]);
+
+        // NOTE(alex): columns beginning with '*' are comments
+        if (instruction.front() == '*')
+            return col;
 
         // NOTE(alex): if the first column does not contain an instruction, it is a label
         if (!col.instruction) {
@@ -486,14 +1369,15 @@ public:
 
         col.mode = Assembler_AddressingMode::INHERENT;
 
-        // NOTE(alex): if the column has a label, the operand is third token rather than the second
+        // NOTE(alex): if the column has a label, the operand is the third token rather than the second
         if (tokens.size() > (col.label.empty() ? 1 : 2)) {
             std::string &operand = tokens[col.label.empty() ? 1 : 2];
 
             if (!IsStringNumber(operand)
                 && !isdigit(operand.front())
                 && operand.front() != '#'
-                && operand.front() != '$') {
+                && operand.front() != '$'
+                && col.instruction->IsAddressingModeSupported(Assembler_AddressingMode::RELATIVE)) {
                 col.mode = Assembler_AddressingMode::RELATIVE;
             } else {
                 switch (operand.front()) {
@@ -525,7 +1409,7 @@ public:
             col.assembled.insert(col.assembled.begin(), operation.opcodes.begin(), operation.opcodes.end());
 
             if (col.mode != Assembler_AddressingMode::INHERENT && col.mode != Assembler_AddressingMode::RELATIVE) {
-                // NOTE(alex): if the column has a label, the operand is third token rather than the second
+                // NOTE(alex): if the column has a label, the operand is the third token rather than the second
                 std::string operand = tokens[col.label.empty() ? 1 : 2];
 
                 u16 value = 0;

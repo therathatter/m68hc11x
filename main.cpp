@@ -1,3 +1,4 @@
+#include "addressingmode.h"
 #include "docking_params.h"
 #include "hello_imgui/hello_imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -6,6 +7,7 @@
 #include "imguiutil.h"
 #include "assembler.h"
 #include <TextEditor.h>
+#include <fstream>
 
 Assembler assembler;
 
@@ -87,8 +89,49 @@ HelloImGui::DockingParams CreateDefaultLayout() {
     return params;
 }
 
+void SaveTestProgram() {
+    std::ofstream testProgram("testProgram.asm");
+
+    for (const auto& inst : AllInstructions) {
+        testProgram << " * " << inst->description << " * \n";
+
+        for (const auto& opcodes : inst->opcodes) {
+            testProgram << "\t" << inst->mnemonic << " ";
+
+            switch (opcodes.first) {
+                case Assembler_AddressingMode::IMMEDIATE:
+                    testProgram << "1";//\t\t// immediate";
+                    break;
+                case Assembler_AddressingMode::DIRECT:
+                    testProgram << "2";//\t\t// direct";
+                    break;
+                case Assembler_AddressingMode::EXTENDED:
+                    testProgram << "$3000";//\t// extended";
+                    break;
+                case Assembler_AddressingMode::INDEXED_X:
+                    testProgram << "1,X";//\t// indexed by X";
+                    break;
+                case Assembler_AddressingMode::INDEXED_Y:
+                    testProgram << "2,Y";//\t// indexed by Y";
+                    break;
+                case Assembler_AddressingMode::INHERENT:
+                    //testProgram << "\t// inherent";
+                    break;
+                case Assembler_AddressingMode::RELATIVE:
+                    testProgram << "STARTBRANCH";//\t// relative";
+                    break;
+            }
+
+            testProgram << std::endl;
+        }
+
+    }
+}
+
 int main(i32, char**) {
     HelloImGui::RunnerParams params;
+
+    SaveTestProgram();
 
     params.appWindowParams.windowTitle = m68hc11x::WindowTitle;
 

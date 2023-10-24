@@ -31,5 +31,6 @@
 *.out
 *.app
 
-# Build output from CLion
+# Build output from CLion and configs
 cmake-*/**
+.idea

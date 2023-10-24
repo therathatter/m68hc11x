@@ -1,0 +1,15 @@
+
+#ifndef M68HC11_ADDRESSINGMODE_H
+#define M68HC11_ADDRESSINGMODE_H
+
+enum Assembler_AddressingMode {
+    IMMEDIATE,
+    DIRECT,
+    EXTENDED,
+    INDEXED_X,
+    INDEXED_Y,
+    INHERENT,
+    RELATIVE
+};
+
+#endif //M68HC11_ADDRESSINGMODE_H

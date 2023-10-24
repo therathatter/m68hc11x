@@ -1,0 +1,3 @@
+[submodule "vendor/ImGuiColorTextEdit"]
+	path = vendor/ImGuiColorTextEdit
+	url = https://github.com/santaclose/ImGuiColorTextEdit

@@ -1,0 +1,18 @@
+"C:\Program Files\JetBrains\CLion 2022.1.3\bin\cmake\win\x64\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2022.1.3/bin/ninja/win/x64/ninja.exe" -G Ninja -S C:\Users\root\CLionProjects\m68hc11 -B C:\Users\root\CLionProjects\m68hc11\cmake-build-debug
+ccache not found cannot use
+-- Library hello_imgui
+-- Populating glfw
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/root/CLionProjects/m68hc11/cmake-build-debug/_deps/glfw-subbuild
+[0/7] Performing update step for 'glfw-populate'
+[1/7] No patch step for 'glfw-populate'
+[3/7] No configure step for 'glfw-populate'
+[4/7] No build step for 'glfw-populate'
+[5/7] No install step for 'glfw-populate'
+[6/7] No test step for 'glfw-populate'
+[7/7] Completed 'glfw-populate'
+-- Using Win32 for window creation
+-- Configuring done
+-- Generating done
+-- Build files have been written to: C:/Users/root/CLionProjects/m68hc11/cmake-build-debug

@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "_deps/hello_imgui-build/src/hello_imgui",
+		"source" : "cmake-build-debug/_deps/hello_imgui-src/src/hello_imgui"
+	}
+}

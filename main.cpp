@@ -16,7 +16,9 @@ TextEditor& GetCodeView() {
 
 void WindowAssembler() {
     static TextEditor editor;
-    editor.Render("##assembler");
+    ImVec2 editorSize = ImGui::GetContentRegionAvail();
+    editorSize.y -= 20;
+    editor.Render("##assembler", false, editorSize);
 
     ImGui::Spacing();
     if (ImGui::RightAlignedButton("Assemble")) {

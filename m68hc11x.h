@@ -7,6 +7,7 @@ namespace m68hc11x {
 }
 
 #include <cstdint>
+#include <cstddef>
 typedef int64_t		i64;
 typedef int32_t		i32;
 typedef int16_t		i16;

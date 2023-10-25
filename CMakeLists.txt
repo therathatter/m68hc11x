@@ -21,7 +21,16 @@ file(GLOB EDIT_SRC vendor/ImGuiColorTextEdit/*.cpp)
 set(BOOST_REGEX_STANDALONE ON)
 add_subdirectory(vendor/ImGuiColorTextEdit/vendor/regex)
 
-hello_imgui_add_app(m68hc11 WIN32 main.cpp imguiutil.cpp assembler.cpp ${EDIT_SRC})
+hello_imgui_add_app(m68hc11 main.cpp imguiutil.cpp assembler.cpp ${EDIT_SRC})
+
+# bad fix for undefined reference in text editor submodule
+if(MSVC)
+    add_definitions(/FI"math.h")
+else()
+    # GCC or Clang
+    add_definitions(-include math.h)
+endif()
+
 target_link_libraries(m68hc11 PRIVATE boost_regex)
 target_include_directories(m68hc11 PRIVATE vendor/ImGuiColorTextEdit)
 

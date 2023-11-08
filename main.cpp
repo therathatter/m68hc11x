@@ -1,6 +1,8 @@
 #include "addressingmode.h"
 #include "docking_params.h"
+#include "dpi_aware.h"
 #include "hello_imgui/hello_imgui.h"
+#include "hello_imgui_assets.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "imgui.h"
 #include "m68hc11x.h"
@@ -12,7 +14,7 @@
 
 Assembler assembler;
 
-TextEditor& GetCodeView() {
+TextEditor &GetCodeView() {
     static TextEditor codeView;
     return codeView;
 }
@@ -20,7 +22,7 @@ TextEditor& GetCodeView() {
 void WindowAssembler() {
     static TextEditor editor;
     ImVec2 editorSize = ImGui::GetContentRegionAvail();
-    editorSize.y -= 20;
+    editorSize.y -= 32;
     editor.Render("##assembler", false, editorSize);
 
     ImGui::Spacing();
@@ -32,17 +34,17 @@ void WindowAssembler() {
 
         try {
             assembler.Assemble(ss);
-        } catch (std::runtime_error& e) {
+        } catch (std::runtime_error &e) {
             finalLines.emplace_back(std::format("Failed to assemble: {}", e.what()));
         }
 
 
-        for (const Column& col : assembler.lines) {
+        for (const Column &col: assembler.lines) {
             char test[200] = {0};
 
             sprintf(test, "%04x: ", col.offset - col.assembled.size());
 
-            for (unsigned char i : col.assembled)
+            for (unsigned char i: col.assembled)
                 sprintf(test, "%s %02x", test, i);
 
             sprintf(test, "%s %s", test, col.raw.c_str());
@@ -56,13 +58,15 @@ void WindowAssembler() {
 
 
 void WindowCodeView() {
-    TextEditor& codeView = GetCodeView();
+    TextEditor &codeView = GetCodeView();
     codeView.SetReadOnlyEnabled(true);
     codeView.Render("##codeview");
 }
 
 typedef void(*WindowCallback)();
-HelloImGui::DockableWindow CreateDockingWindow(const char* label, const char* initialDockSpace, WindowCallback callback, ImGuiWindowFlags flags = ImGuiWindowFlags_None) {
+
+HelloImGui::DockableWindow CreateDockingWindow(const char *label, const char *initialDockSpace, WindowCallback callback,
+                                               ImGuiWindowFlags flags = ImGuiWindowFlags_None) {
     HelloImGui::DockableWindow window;
     window.label = label;
     window.dockSpaceName = initialDockSpace;
@@ -71,7 +75,8 @@ HelloImGui::DockableWindow CreateDockingWindow(const char* label, const char* in
     return window;
 }
 
-HelloImGui::DockingSplit CreateDockingSplit(const char* initialDock, const char* newDock, ImGuiDir_ direction, f32 ratio) {
+HelloImGui::DockingSplit
+CreateDockingSplit(const char *initialDock, const char *newDock, ImGuiDir_ direction, f32 ratio) {
     HelloImGui::DockingSplit split;
     split.initialDock = initialDock;
     split.newDock = newDock;
@@ -85,11 +90,12 @@ HelloImGui::DockingParams CreateDefaultLayout() {
 
     params.dockableWindows = {
             CreateDockingWindow("Code View", "LeftSpace", WindowCodeView),
-            CreateDockingWindow("Assembler", "RightSpace", WindowAssembler, ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar),
+            CreateDockingWindow("Assembler", "RightSpace", WindowAssembler,
+                                ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoScrollbar),
     };
 
     params.dockingSplits = {
-            CreateDockingSplit("MainDockSpace", "LeftSpace",  ImGuiDir_Left, 0.5f),
+            CreateDockingSplit("MainDockSpace", "LeftSpace", ImGuiDir_Left, 0.5f),
             CreateDockingSplit("MainDockSpace", "RightSpace", ImGuiDir_Right, 0.5f),
     };
 
@@ -99,10 +105,10 @@ HelloImGui::DockingParams CreateDefaultLayout() {
 void SaveTestProgram() {
     std::ofstream testProgram("testProgram.asm");
 
-    for (const auto& inst : AllInstructions) {
+    for (const auto &inst: AllInstructions) {
         testProgram << " * " << inst->description << " * \n";
 
-        for (const auto& opcodes : inst->opcodes) {
+        for (const auto &opcodes: inst->opcodes) {
             testProgram << "\t" << inst->mnemonic << " ";
 
             switch (opcodes.first) {
@@ -135,6 +141,17 @@ void SaveTestProgram() {
     }
 }
 
+void LoadAdditionalFonts() {
+    HelloImGui::AssetFileData fileData = HelloImGui::LoadAssetFileData("JetBrainsMono-Regular.ttf");
+
+    ImFontConfig FontConfig = ImFontConfig();
+    FontConfig.OversampleV = 3;
+    FontConfig.OversampleH = 3;
+
+    // NOTE(alex): AddFontFromMemoryTTF takes ownership of the data and frees it for us
+    ImGui::GetIO().Fonts->AddFontFromMemoryTTF(fileData.data, fileData.dataSize, m68hc11x::DefaultFontSize * HelloImGui::DpiFontLoadingFactor(), &FontConfig);
+}
+
 int main(i32, char**) {
     HelloImGui::RunnerParams params;
 
@@ -146,6 +163,8 @@ int main(i32, char**) {
     params.imGuiWindowParams.defaultImGuiWindowType = HelloImGui::DefaultImGuiWindowType::ProvideFullScreenDockSpace;
     // NOTE(alex): allows docking into separate windows entirely
     params.imGuiWindowParams.enableViewports = true;
+
+    params.callbacks.LoadAdditionalFonts = LoadAdditionalFonts;
 
     params.dockingParams = CreateDefaultLayout();
 

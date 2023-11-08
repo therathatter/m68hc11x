@@ -4,6 +4,7 @@
 
 namespace m68hc11x {
     inline const char *WindowTitle = "m68hc11x";
+    inline float DefaultFontSize = 24.0f;
 }
 
 #include <cstdint>

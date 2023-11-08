@@ -11,6 +11,8 @@
 #include <sstream>
 #include <map>
 #include <functional>
+#include <format>
+#include <iomanip>
 
 class CPUState {
 public:
@@ -1284,19 +1286,36 @@ inline InstructionRef GetInstructionByMnemonic(const std::string &mnemonic) {
     return *inst;
 }
 
-class Column {
+class Row {
 public:
     std::string label;
     std::string raw;
     InstructionRef instruction;
+    std::vector<std::string> tokens;
 
     Assembler_AddressingMode mode;
     std::string referencedLabel;
     std::vector<u8> operand;
     std::vector<u8> assembled;
     u16 offset;
-};
 
+    [[nodiscard]] std::string str(const size_t minWidth = 8) const {
+        std::stringstream out;
+        std::string bytes;
+
+        bytes.append(std::format("{:x}: ", offset - assembled.size()));
+
+        for (const u8 opcode : assembled)
+            bytes.append(std::format("{:x} ", opcode));
+
+        out << std::left << std::setw(minWidth*2) << bytes << std::setw(minWidth);
+
+        for (const auto& token : tokens)
+            out << token;
+
+        return out.str();
+    }
+};
 
 inline bool IsStringNumber(const std::string &s) {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
@@ -1317,114 +1336,113 @@ public:
     }
 
     void ResolveBranches() {
-        for (auto& col : lines) {
-            if (col.mode != Assembler_AddressingMode::RELATIVE)
+        for (auto& row : lines) {
+            if (row.mode != Assembler_AddressingMode::RELATIVE)
                 continue;
 
             u16 branchOffset = 0;
 
             try {
-                branchOffset = labelAddresses.at(col.referencedLabel);
+                branchOffset = labelAddresses.at(row.referencedLabel);
             } catch (std::out_of_range& e) {
                 throw std::runtime_error("Invalid label");
             }
 
-            i16 offset = branchOffset - col.offset;
+            i16 offset = branchOffset - row.offset;
 
             if (offset < -127 || offset > 127) {
                 throw std::runtime_error("Branch out of range");
             }
 
-            col.assembled.back() = offset;
+            row.assembled.back() = offset;
         }
     }
 
-    Column AssembleSingleLine(const std::string& str) {
-        Column col = {};
-        col.raw = str;
+    Row AssembleSingleLine(const std::string& str) {
+        Row row = {};
+        row.raw = str;
 
-        std::vector<std::string> tokens;
         std::stringstream ss(str);
         std::string token;
         while (ss >> token) {
             if (token.empty())
                 continue;
 
-            tokens.emplace_back(token);
+            row.tokens.emplace_back(token);
         }
 
         if (!lines.empty()) {
-            col.offset = lines.back().offset;
+            row.offset = lines.back().offset;
         }
 
-        if (tokens.empty())
-            return col;
+        if (row.tokens.empty())
+            return row;
 
-        std::string instruction = tokens[0];
-        col.instruction = GetInstructionByMnemonic(tokens[0]);
+        std::string instruction = row.tokens[0];
+        row.instruction = GetInstructionByMnemonic(row.tokens[0]);
 
         // NOTE(alex): columns beginning with '*' are comments
         if (instruction.front() == '*')
-            return col;
+            return row;
 
         // NOTE(alex): if the first column does not contain an instruction, it is a label
-        if (!col.instruction) {
+        if (!row.instruction) {
             if (instruction.front() == '#' || instruction.front() == '$' || isdigit(instruction.front())) {
                 throw std::runtime_error("Invalid label name");
             }
 
-            col.label = instruction;
-            col.instruction = GetInstructionByMnemonic(tokens[1]);
+            row.label = instruction;
+            row.instruction = GetInstructionByMnemonic(row.tokens[1]);
         }
 
-        if (!col.instruction) {
+        if (!row.instruction) {
             throw std::runtime_error("Invalid instruction mnemonic");
         }
 
-        col.mode = Assembler_AddressingMode::INHERENT;
+        row.mode = Assembler_AddressingMode::INHERENT;
 
         // NOTE(alex): if the column has a label, the operand is the third token rather than the second
-        if (tokens.size() > (col.label.empty() ? 1 : 2)) {
-            std::string &operand = tokens[col.label.empty() ? 1 : 2];
+        if (row.tokens.size() > (row.label.empty() ? 1 : 2)) {
+            std::string &operand = row.tokens[row.label.empty() ? 1 : 2];
 
             if (!IsStringNumber(operand)
                 && !isdigit(operand.front())
                 && operand.front() != '#'
                 && operand.front() != '$'
-                && col.instruction->IsAddressingModeSupported(Assembler_AddressingMode::RELATIVE)) {
-                col.mode = Assembler_AddressingMode::RELATIVE;
+                && row.instruction->IsAddressingModeSupported(Assembler_AddressingMode::RELATIVE)) {
+                row.mode = Assembler_AddressingMode::RELATIVE;
             } else {
                 switch (operand.front()) {
                     case '#':
-                        col.mode = Assembler_AddressingMode::IMMEDIATE;
+                        row.mode = Assembler_AddressingMode::IMMEDIATE;
                         operand.erase(0, 1);
                         break;
                     case '$':
-                        col.mode = Assembler_AddressingMode::EXTENDED;
+                        row.mode = Assembler_AddressingMode::EXTENDED;
                         break;
                     default:
-                        col.mode = Assembler_AddressingMode::DIRECT;
+                        row.mode = Assembler_AddressingMode::DIRECT;
                         break;
                 }
 
                 switch (operand.back()) {
                     case 'X':
-                        col.mode = Assembler_AddressingMode::INDEXED_X;
+                        row.mode = Assembler_AddressingMode::INDEXED_X;
                         break;
                     case 'Y':
-                        col.mode = Assembler_AddressingMode::INDEXED_Y;
+                        row.mode = Assembler_AddressingMode::INDEXED_Y;
                         break;
                 }
             }
         }
 
         try {
-            const Operation &operation = col.instruction->opcodes.at(col.mode);
-            col.assembled.insert(col.assembled.begin(), operation.opcodes.begin(), operation.opcodes.end());
+            const Operation &operation = row.instruction->opcodes.at(row.mode);
+            row.assembled.insert(row.assembled.begin(), operation.opcodes.begin(), operation.opcodes.end());
 
-            if (col.mode != Assembler_AddressingMode::INHERENT && col.mode != Assembler_AddressingMode::RELATIVE) {
+            if (row.mode != Assembler_AddressingMode::INHERENT && row.mode != Assembler_AddressingMode::RELATIVE) {
                 // NOTE(alex): if the column has a label, the operand is the third token rather than the second
-                std::string operand = tokens[col.label.empty() ? 1 : 2];
+                std::string operand = row.tokens[row.label.empty() ? 1 : 2];
 
                 u16 value = 0;
                 // NOTE(alex): hex values begin with $
@@ -1435,42 +1453,42 @@ public:
                     value = std::stoul(operand, nullptr, 10);
                 }
 
-                if (col.instruction == OrgInst) {
-                    col.offset = value;
+                if (row.instruction == OrgInst) {
+                    row.offset = value;
                 } else {
                     switch (operation.byteCount) {
                         case 1:
-                            col.assembled.emplace_back(value);
+                            row.assembled.emplace_back(value);
                             break;
                         case 2:
-                            col.assembled.emplace_back(value >> 8);
-                            col.assembled.emplace_back(value);
+                            row.assembled.emplace_back(value >> 8);
+                            row.assembled.emplace_back(value);
                             break;
                     }
                 }
-            } else if (col.mode == Assembler_AddressingMode::RELATIVE) {
+            } else if (row.mode == Assembler_AddressingMode::RELATIVE) {
                 // NOTE(alex): dummy byte to be replaced at the branch pass
-                col.assembled.emplace_back();
+                row.assembled.emplace_back();
 
-                std::string referencedLabel = tokens[col.label.empty() ? 1 : 2];
-                col.referencedLabel = referencedLabel;
+                std::string referencedLabel = row.tokens[row.label.empty() ? 1 : 2];
+                row.referencedLabel = referencedLabel;
             }
 
-            if (!col.label.empty())
-                labelAddresses.insert_or_assign(col.label, col.offset);
+            if (!row.label.empty())
+                labelAddresses.insert_or_assign(row.label, row.offset);
         } catch (std::out_of_range& e) {
             throw std::runtime_error("Invalid addressing mode");
         }
 
         if (!lines.empty())
-            col.offset += col.assembled.size();
+            row.offset += row.assembled.size();
 
-        return col;
+        return row;
     }
 
     std::unordered_map<std::string, u16> labelAddresses;
     std::stringstream stream;
-    std::vector<Column> lines;
+    std::vector<Row> lines;
 };
 
 #endif //M68HC11_ASSEMBLER_H

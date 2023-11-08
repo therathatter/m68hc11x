@@ -39,17 +39,8 @@ void WindowAssembler() {
         }
 
 
-        for (const Column &col: assembler.lines) {
-            char test[200] = {0};
-
-            sprintf(test, "%04x: ", col.offset - col.assembled.size());
-
-            for (unsigned char i: col.assembled)
-                sprintf(test, "%s %02x", test, i);
-
-            sprintf(test, "%s %s", test, col.raw.c_str());
-
-            finalLines.emplace_back(test);
+        for (const Row &row : assembler.lines) {
+            finalLines.push_back(row.str());
         }
 
         GetCodeView().SetTextLines(finalLines);

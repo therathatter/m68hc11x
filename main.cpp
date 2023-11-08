@@ -8,6 +8,7 @@
 #include "assembler.h"
 #include <TextEditor.h>
 #include <fstream>
+#include <format>
 
 Assembler assembler;
 
@@ -26,14 +27,20 @@ void WindowAssembler() {
     if (ImGui::RightAlignedButton("Assemble")) {
         std::stringstream ss(editor.GetText());
         assembler.Reset();
-        assembler.Assemble(ss);
 
         std::vector<std::string> finalLines = {};
+
+        try {
+            assembler.Assemble(ss);
+        } catch (std::runtime_error& e) {
+            finalLines.emplace_back(std::format("Failed to assemble: {}", e.what()));
+        }
+
 
         for (const Column& col : assembler.lines) {
             char test[200] = {0};
 
-            sprintf(test, "%04x: ", col.offset);
+            sprintf(test, "%04x: ", col.offset - col.assembled.size());
 
             for (unsigned char i : col.assembled)
                 sprintf(test, "%s %02x", test, i);

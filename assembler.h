@@ -365,7 +365,7 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
                 "BRA",
                 "Branch Always",
                 {
-                        { Assembler_AddressingMode::RELATIVE, { {0x2A}, 1 } }
+                        { Assembler_AddressingMode::RELATIVE, { {0x20}, 1 } }
                 }
         ),
         Instruction::Create(
@@ -1291,12 +1291,12 @@ public:
     InstructionRef instruction;
 
     Assembler_AddressingMode mode;
+    std::string referencedLabel;
     std::vector<u8> operand;
     std::vector<u8> assembled;
-    u32 offset;
+    u16 offset;
 };
 
-inline std::unordered_map<std::string, u16> labelAddresses;
 
 inline bool IsStringNumber(const std::string &s) {
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
@@ -1308,21 +1308,35 @@ public:
         for (std::string line; std::getline(str, line, '\n');) {
             lines.emplace_back(AssembleSingleLine(line));
         }
-    }
 
-    Column* GetColumnByLabel(const std::string& label) {
-        auto column = std::find_if(lines.begin(), lines.end(), [&label](const Column& col) {
-            return label == col.label;
-        });
-
-        if (column == lines.end())
-            return nullptr;
-
-        return &*column;
+        ResolveBranches();
     }
 
     void Reset() {
         lines.clear();
+    }
+
+    void ResolveBranches() {
+        for (auto& col : lines) {
+            if (col.mode != Assembler_AddressingMode::RELATIVE)
+                continue;
+
+            u16 branchOffset = 0;
+
+            try {
+                branchOffset = labelAddresses.at(col.referencedLabel);
+            } catch (std::out_of_range& e) {
+                throw std::runtime_error("Invalid label");
+            }
+
+            i16 offset = branchOffset - col.offset;
+
+            if (offset < -127 || offset > 127) {
+                throw std::runtime_error("Branch out of range");
+            }
+
+            col.assembled.back() = offset;
+        }
     }
 
     Column AssembleSingleLine(const std::string& str) {
@@ -1436,10 +1450,14 @@ public:
                 }
             } else if (col.mode == Assembler_AddressingMode::RELATIVE) {
                 // NOTE(alex): dummy byte to be replaced at the branch pass
-                col.assembled.emplace_back(0xFF);
+                col.assembled.emplace_back();
 
-                labelAddresses.insert_or_assign(col.label, col.offset);
+                std::string referencedLabel = tokens[col.label.empty() ? 1 : 2];
+                col.referencedLabel = referencedLabel;
             }
+
+            if (!col.label.empty())
+                labelAddresses.insert_or_assign(col.label, col.offset);
         } catch (std::out_of_range& e) {
             throw std::runtime_error("Invalid addressing mode");
         }
@@ -1450,6 +1468,7 @@ public:
         return col;
     }
 
+    std::unordered_map<std::string, u16> labelAddresses;
     std::stringstream stream;
     std::vector<Column> lines;
 };

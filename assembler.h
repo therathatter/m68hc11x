@@ -1333,6 +1333,7 @@ public:
 
     void Reset() {
         lines.clear();
+        labelAddresses.clear();
     }
 
     void ResolveBranches() {

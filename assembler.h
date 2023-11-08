@@ -1303,10 +1303,10 @@ public:
         std::stringstream out;
         std::string bytes;
 
-        bytes.append(std::format("{:x}: ", offset - assembled.size()));
+        bytes.append(std::format("{:04x}: ", offset - assembled.size()));
 
         for (const u8 opcode : assembled)
-            bytes.append(std::format("{:x} ", opcode));
+            bytes.append(std::format("{:02x} ", opcode));
 
         out << std::left << std::setw(minWidth*2) << bytes << std::setw(minWidth);
 

@@ -38,7 +38,6 @@ void WindowAssembler() {
             finalLines.emplace_back(std::format("Failed to assemble: {}", e.what()));
         }
 
-
         for (const Row &row : assembler.lines) {
             finalLines.push_back(row.str());
         }

@@ -81,6 +81,13 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
                 }
         ),
         Instruction::Create(
+                "RMB",
+                {
+                        {Assembler_AddressingMode::DIRECT, { {}, 0 }},
+                        {Assembler_AddressingMode::EXTENDED, { {}, 0 }},
+                }
+       ),
+        Instruction::Create(
                 "ABA",
                 "Add accumulators",
                 {
@@ -1271,7 +1278,11 @@ inline std::vector<std::shared_ptr<Instruction>> AllInstructions = {
         ),
 };
 
-inline InstructionRef OrgInst = AllInstructions.front();
+namespace ReservedDirectives {
+    inline InstructionRef OrgInst = AllInstructions[0];
+    inline InstructionRef RmbInst = AllInstructions[1];
+}
+
 
 inline InstructionRef GetInstructionByMnemonic(const std::string &mnemonic) {
     // TODO(alex): replace with hash map for faster lookup
@@ -1454,17 +1465,21 @@ public:
                     value = std::stoul(operand, nullptr, 10);
                 }
 
-                if (row.instruction == OrgInst) {
+                if (row.instruction == ReservedDirectives::OrgInst) {
                     row.offset = value;
+                } else if (row.instruction == ReservedDirectives::RmbInst) {
+                    for (u16 i = 0; i < value; i++) {
+                        row.assembled.emplace_back();
+                    }
                 } else {
                     switch (operation.byteCount) {
                         case 1:
                             row.assembled.emplace_back(value);
                             break;
-                        case 2:
-                            row.assembled.emplace_back(value >> 8);
-                            row.assembled.emplace_back(value);
-                            break;
+                            case 2:
+                                row.assembled.emplace_back(value >> 8);
+                                row.assembled.emplace_back(value);
+                                break;
                     }
                 }
             } else if (row.mode == Assembler_AddressingMode::RELATIVE) {
@@ -1484,12 +1499,16 @@ public:
         if (!lines.empty())
             row.offset += row.assembled.size();
 
+        if (row.assembled.size() > longest)
+            longest = row.assembled.size();
+
         return row;
     }
 
     std::unordered_map<std::string, u16> labelAddresses;
     std::stringstream stream;
     std::vector<Row> lines;
+    u16 longest;
 };
 
 #endif //M68HC11_ASSEMBLER_H
